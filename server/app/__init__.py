@@ -1,0 +1,2 @@
+"""Inner Weather FastAPI application."""
+
