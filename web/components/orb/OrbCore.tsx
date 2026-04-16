@@ -8,7 +8,7 @@ export function OrbCore() {
   const uniforms = useOrbUniforms();
 
   return (
-    <mesh scale={0.72}>
+    <mesh scale={0.58}>
       <sphereGeometry args={[1, 96, 96]} />
       <shaderMaterial
         uniforms={uniforms}
@@ -16,9 +16,8 @@ export function OrbCore() {
         fragmentShader={coreFragmentShader}
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
       />
     </mesh>
   );
 }
-

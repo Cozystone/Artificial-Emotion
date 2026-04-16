@@ -25,7 +25,7 @@ class OllamaClient:
             "messages": [{"role": msg.role, "content": msg.content} for msg in messages],
             "stream": True,
             "keep_alive": "10m",
-            "options": {"temperature": 0.7},
+            "options": {"temperature": 0.25},
         }
         url = f"{self.base_url}/api/chat"
         try:
@@ -53,4 +53,3 @@ class OllamaClient:
             raise OllamaError("Ollama is not reachable at the configured URL.") from exc
         except httpx.HTTPError as exc:
             raise OllamaError(f"Ollama request failed: {exc}") from exc
-

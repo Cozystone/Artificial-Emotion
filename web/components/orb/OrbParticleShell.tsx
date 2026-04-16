@@ -43,9 +43,8 @@ export function OrbParticleShell() {
         fragmentShader={particleFragmentShader}
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
       />
     </points>
   );
 }
-

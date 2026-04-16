@@ -18,9 +18,9 @@ export function OrbScene() {
       >
         <color attach="background" args={["#000000"]} />
         <fog attach="fog" args={["#000000", 7, 13]} />
-        <ambientLight intensity={0.22} />
-        <pointLight position={[-4.4, 3.0, 3.6]} intensity={2.6} color="#ddebff" />
-        <pointLight position={[3.8, -2.6, 3.2]} intensity={1.35} color="#6ce7ff" />
+        <ambientLight intensity={0.1} />
+        <pointLight position={[-4.4, 3.0, 3.6]} intensity={1.5} color="#ddebff" />
+        <pointLight position={[3.8, -2.6, 3.2]} intensity={0.9} color="#6ce7ff" />
         <group position={[-0.12, 0.02, 0]} rotation={[0.05, -0.18, 0]} scale={0.86}>
           <OrbAura />
           <OrbCore />
@@ -36,7 +36,7 @@ export function OrbScene() {
         />
         <Environment preset="night" />
         <EffectComposer multisampling={0}>
-          <Bloom intensity={0.68} luminanceThreshold={0.12} luminanceSmoothing={0.78} mipmapBlur />
+          <Bloom intensity={0.28} luminanceThreshold={0.24} luminanceSmoothing={0.72} mipmapBlur />
         </EffectComposer>
       </Canvas>
     </div>
