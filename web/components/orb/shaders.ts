@@ -170,7 +170,6 @@ export const particleVertexShader = `
 attribute float aSeed;
 varying float vAlpha;
 varying vec3 vColor;
-varying vec2 vUvPoint;
 uniform float uTime;
 uniform float uTension;
 uniform float uUncertainty;
@@ -227,7 +226,7 @@ void main() {
   float uncertaintyRegion = smoothstep(0.28, 0.80, dot(n, normalize(vec3(0.12, 0.82, -0.28))) + noise(n * 3.4 + uTime * 0.14) * 0.38);
   float resistanceRegion = smoothstep(0.38, 0.86, dot(n, normalize(vec3(0.42, -0.72, -0.12))) + (1.0 - membrane) * 0.32);
 
-  vec3 neutral = vec3(0.28, 0.34, 0.42);
+  vec3 neutral = vec3(0.02, 0.03, 0.05);
   vec3 confidence = vec3(0.76, 0.98, 1.0);
   vec3 alignment = vec3(0.12, 0.92, 1.0);
   vec3 tension = vec3(0.84, 0.22, 0.98);
@@ -248,22 +247,25 @@ void main() {
     dominantColor = resistance;
   }
   vec3 regionColor = neutral;
-  regionColor = mix(regionColor, confidence, confidenceRegion * (0.30 + uConfidence * 1.25));
-  regionColor = mix(regionColor, alignment, alignmentRegion * (0.28 + uAlignment * 1.30));
-  regionColor = mix(regionColor, tension, tensionRegion * (0.12 + uTension * 1.45));
-  regionColor = mix(regionColor, uncertainty, uncertaintyRegion * (0.16 + uUncertainty * 1.25));
-  regionColor = mix(regionColor, resistance, resistanceRegion * (0.08 + uResistance * 1.20));
-  regionColor += confidence * uConfidence * pointWaveA * 0.18;
-  regionColor += alignment * uAlignment * pointWaveB * 0.22;
-  regionColor += tension * uTension * pointWaveA * 0.24;
-  regionColor += uncertainty * uUncertainty * pointWaveB * 0.18;
-  regionColor = mix(regionColor, dominantColor, clamp((dominant - 0.12) * 1.55, 0.16, 0.72));
+  regionColor = mix(regionColor, confidence, confidenceRegion * (0.42 + uConfidence * 1.65));
+  regionColor = mix(regionColor, alignment, alignmentRegion * (0.40 + uAlignment * 1.70));
+  regionColor = mix(regionColor, tension, tensionRegion * (0.24 + uTension * 1.95));
+  regionColor = mix(regionColor, uncertainty, uncertaintyRegion * (0.28 + uUncertainty * 1.70));
+  regionColor = mix(regionColor, resistance, resistanceRegion * (0.16 + uResistance * 1.55));
+  regionColor += confidence * uConfidence * pointWaveA * 0.34;
+  regionColor += alignment * uAlignment * pointWaveB * 0.38;
+  regionColor += tension * uTension * pointWaveA * 0.42;
+  regionColor += uncertainty * uUncertainty * pointWaveB * 0.32;
+  regionColor += resistance * uResistance * (1.0 - pointWaveA) * 0.22;
+  regionColor = mix(regionColor, dominantColor, clamp((dominant - 0.08) * 1.9, 0.26, 0.88));
 
   float dotLife = 0.58 + 0.42 * sin(aSeed * 31.0 + uTime * (0.7 + uTremor * 1.8));
-  float panelLight = 0.18 + panel * 0.22 + rim * 0.14 + uGlow * 0.10 + guideSignal * 0.68 + pointWaveA * 0.14;
-  vAlpha = clamp(panelLight * dotLife, 0.18, 0.98);
-  vColor = mix(regionColor * (0.96 + panel * 0.36 + rim * 0.22), vec3(0.95, 0.98, 1.0), guideSignal * 0.62);
-  gl_PointSize = (7.4 + panel * 4.0 + rim * 2.6 + guideSignal * 6.0) / max(1.2, -mvPosition.z);
+  float guideAlpha = guideSignal * 0.96;
+  float colorAlpha = clamp((0.28 + panel * 0.28 + rim * 0.12 + pointWaveA * 0.16 + pointWaveB * 0.14) * dotLife, 0.22, 1.0);
+  vAlpha = max(colorAlpha, guideAlpha);
+  vec3 guideColor = vec3(0.95, 0.98, 1.0);
+  vColor = mix(regionColor * (1.18 + panel * 0.44 + rim * 0.18), guideColor, guideSignal * 0.9);
+  gl_PointSize = (8.8 + panel * 4.8 + rim * 2.2 + guideSignal * 6.8) / max(1.2, -mvPosition.z);
 }
 `;
 

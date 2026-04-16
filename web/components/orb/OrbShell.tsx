@@ -18,6 +18,7 @@ export function OrbShell() {
         depthWrite={false}
         blending={THREE.NormalBlending}
         side={THREE.DoubleSide}
+        opacity={0.6}
       />
     </mesh>
   );
