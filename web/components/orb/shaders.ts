@@ -87,9 +87,15 @@ void main() {
   vec3 normal = normalize(vNormal);
   vec3 viewDir = normalize(cameraPosition - vWorld);
   float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.15);
-  float fieldA = noise(normal * 2.8 + vec3(uTime * 0.07, -uTime * 0.05, uTime * 0.03));
-  float fieldB = noise(normal * 7.5 + vec3(-uTime * 0.18, uTime * 0.12, uTime * 0.09));
-  float vein = smoothstep(0.42, 0.86, fieldB + sin(vUv.y * 8.0 + uTime * 0.22) * 0.12);
+  vec3 flowNormal = normalize(normal + vec3(sin(uTime * 0.08) * 0.18, cos(uTime * 0.07) * 0.14, 0.0));
+  float fieldA = noise(flowNormal * 1.65 + vec3(uTime * 0.11, -uTime * 0.08, uTime * 0.05));
+  float fieldB = noise(flowNormal * 4.1 + vec3(-uTime * 0.22, uTime * 0.16, uTime * 0.12));
+  float fieldC = noise(flowNormal * 8.5 + vec3(uTime * 0.31, uTime * 0.09, -uTime * 0.18));
+  float latitudeFlow = sin(vUv.y * 10.0 + fieldA * 3.2 + uTime * (0.34 + uAlignment * 0.32));
+  float meridianFlow = sin(vUv.x * 12.0 - fieldB * 2.4 - uTime * (0.28 + uTension * 0.5));
+  float broadPool = smoothstep(0.28, 0.82, fieldA + latitudeFlow * 0.16);
+  float driftingPool = smoothstep(0.34, 0.78, fieldB + meridianFlow * 0.13);
+  float vein = smoothstep(0.38, 0.82, fieldC + latitudeFlow * 0.18);
 
   vec3 neutral = vec3(0.90, 0.94, 0.98);
   vec3 tension = vec3(0.64, 0.36, 1.0);
@@ -99,15 +105,16 @@ void main() {
   vec3 resistance = vec3(0.29, 0.34, 0.40);
 
   vec3 color = neutral;
-  color = mix(color, uncertainty, uUncertainty * (0.35 + fieldA * 0.45));
-  color = mix(color, alignment, uAlignment * (0.28 + (1.0 - fieldA) * 0.42));
-  color = mix(color, confidence, uConfidence * (0.22 + fresnel * 0.45));
-  color = mix(color, tension, uTension * vein * 0.72);
-  color = mix(color, resistance, uResistance * (0.45 + fresnel * 0.32));
+  color = mix(color, uncertainty, uUncertainty * (0.24 + broadPool * 0.72));
+  color = mix(color, alignment, uAlignment * (0.20 + driftingPool * 0.66));
+  color = mix(color, confidence, uConfidence * (0.22 + fresnel * 0.38 + (1.0 - broadPool) * 0.20));
+  color = mix(color, tension, uTension * (0.18 + vein * 0.78));
+  color = mix(color, resistance, uResistance * (0.34 + fresnel * 0.34 + (1.0 - driftingPool) * 0.18));
 
-  float alpha = 0.24 + fresnel * 0.44 + uGlow * 0.13;
-  float innerMilk = smoothstep(0.18, 0.95, fieldA) * 0.12;
-  vec3 finalColor = color + fresnel * vec3(0.20, 0.32, 0.42) + innerMilk;
+  vec3 seep = alignment * driftingPool * uAlignment * 0.18 + tension * vein * uTension * 0.16 + uncertainty * broadPool * uUncertainty * 0.14;
+  float alpha = 0.28 + fresnel * 0.48 + uGlow * 0.16 + max(max(uTension, uAlignment), uUncertainty) * 0.06;
+  float innerMilk = smoothstep(0.12, 0.88, fieldA) * 0.16;
+  vec3 finalColor = color + seep + fresnel * vec3(0.22, 0.34, 0.44) + innerMilk;
   gl_FragColor = vec4(finalColor, alpha);
 }
 `;

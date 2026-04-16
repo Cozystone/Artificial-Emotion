@@ -9,7 +9,7 @@ export function OrbShell() {
 
   return (
     <mesh>
-      <sphereGeometry args={[1.52, 176, 176]} />
+      <sphereGeometry args={[1.46, 176, 176]} />
       <shaderMaterial
         uniforms={uniforms}
         vertexShader={shellVertexShader}
@@ -21,4 +21,3 @@ export function OrbShell() {
     </mesh>
   );
 }
-
