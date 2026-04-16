@@ -88,81 +88,53 @@ float noise(vec3 x) {
 void main() {
   vec3 normal = normalize(vNormal);
   vec3 viewDir = normalize(cameraPosition - vWorld);
-  float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.15);
+  float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 1.9);
   float dominant = max(max(max(uConfidence, uAlignment), max(uTension, uUncertainty)), uResistance);
-  vec3 flowNormal = normalize(normal + vec3(sin(uTime * 0.08) * 0.18, cos(uTime * 0.07) * 0.14, 0.0));
-  float fieldA = noise(flowNormal * 1.65 + vec3(uTime * 0.11, -uTime * 0.08, uTime * 0.05));
-  float fieldB = noise(flowNormal * 4.1 + vec3(-uTime * 0.22, uTime * 0.16, uTime * 0.12));
-  float fieldC = noise(flowNormal * 8.5 + vec3(uTime * 0.31, uTime * 0.09, -uTime * 0.18));
-  float livingField = noise(flowNormal * 2.35 + vec3(-uTime * 0.16, uTime * 0.13, uTime * 0.07));
-  float latitudeFlow = sin(vUv.y * 10.0 + fieldA * 3.2 + uTime * (0.34 + uAlignment * 0.32));
-  float meridianFlow = sin(vUv.x * 12.0 - fieldB * 2.4 - uTime * (0.28 + uTension * 0.5));
-  float broadPool = smoothstep(0.28, 0.82, fieldA + latitudeFlow * 0.16);
-  float driftingPool = smoothstep(0.34, 0.78, fieldB + meridianFlow * 0.13);
-  float vein = smoothstep(0.38, 0.82, fieldC + latitudeFlow * 0.18);
-  float colorWaveA = 0.5 + 0.5 * sin(uTime * 0.95 + vUv.x * 12.0 + fieldA * 5.0);
-  float colorWaveB = 0.5 + 0.5 * sin(-uTime * 0.78 + vUv.y * 10.0 + fieldB * 4.5);
-  float colorWaveC = 0.5 + 0.5 * sin(uTime * 1.25 + (vUv.x + vUv.y) * 9.0 + fieldC * 6.0);
-  float confidenceRegion = smoothstep(0.42, 0.88, dot(normal, normalize(vec3(-0.24, 0.56, 0.79))) + livingField * 0.34);
-  float alignmentRegion = smoothstep(0.32, 0.84, dot(normal, normalize(vec3(0.78, -0.15, 0.48))) + fieldA * 0.36);
-  float tensionRegion = smoothstep(0.36, 0.82, dot(normal, normalize(vec3(-0.72, -0.36, 0.42))) + fieldC * 0.42);
-  float uncertaintyRegion = smoothstep(0.26, 0.78, dot(normal, normalize(vec3(0.12, 0.82, -0.28))) + fieldB * 0.38);
-  float resistanceRegion = smoothstep(0.38, 0.86, dot(normal, normalize(vec3(0.42, -0.72, -0.12))) + (1.0 - fieldA) * 0.32);
+  vec3 flowNormal = normalize(normal + vec3(sin(uTime * 0.12) * 0.12, cos(uTime * 0.09) * 0.10, 0.0));
+  float fieldA = noise(flowNormal * 2.0 + vec3(uTime * 0.16, -uTime * 0.11, uTime * 0.08));
+  float fieldB = noise(flowNormal * 4.8 + vec3(-uTime * 0.24, uTime * 0.18, uTime * 0.14));
+  float fieldC = noise(flowNormal * 7.2 + vec3(uTime * 0.34, uTime * 0.12, -uTime * 0.20));
 
-  vec3 neutral = vec3(0.08, 0.10, 0.14);
-  vec3 milk = vec3(0.24, 0.30, 0.38);
-  vec3 tension = vec3(0.88, 0.18, 0.96);
-  vec3 uncertainty = vec3(0.34, 0.46, 0.86);
-  vec3 confidence = vec3(0.76, 0.98, 1.0);
-  vec3 alignment = vec3(0.08, 0.92, 1.0);
-  vec3 resistance = vec3(0.22, 0.26, 0.34);
+  float confidenceMask = smoothstep(0.36, 0.78, dot(normal, normalize(vec3(-0.22, 0.58, 0.78))) + fieldA * 0.42);
+  float alignmentMask = smoothstep(0.32, 0.80, dot(normal, normalize(vec3(0.76, -0.12, 0.54))) + fieldB * 0.40);
+  float tensionMask = smoothstep(0.30, 0.82, dot(normal, normalize(vec3(-0.78, -0.28, 0.36))) + fieldC * 0.46);
+  float uncertaintyMask = smoothstep(0.28, 0.76, dot(normal, normalize(vec3(0.14, 0.84, -0.26))) + fieldB * 0.40);
+  float resistanceMask = smoothstep(0.34, 0.82, dot(normal, normalize(vec3(0.46, -0.72, -0.10))) + (1.0 - fieldA) * 0.36);
+
+  float wave1 = 0.5 + 0.5 * sin(uTime * 0.95 + vUv.x * 14.0 + fieldA * 5.5);
+  float wave2 = 0.5 + 0.5 * sin(-uTime * 0.78 + vUv.y * 11.0 + fieldB * 4.8);
+  float wave3 = 0.5 + 0.5 * sin(uTime * 1.24 + (vUv.x + vUv.y) * 8.0 + fieldC * 6.4);
+
+  vec3 base = vec3(0.03, 0.04, 0.06);
+  vec3 confidence = vec3(0.78, 0.98, 1.0);
+  vec3 alignment = vec3(0.10, 0.92, 1.0);
+  vec3 tension = vec3(0.90, 0.22, 0.98);
+  vec3 uncertainty = vec3(0.38, 0.50, 0.92);
+  vec3 resistance = vec3(0.28, 0.34, 0.42);
+
+  float confidenceStrength = uConfidence * (0.30 + wave1 * 0.70);
+  float alignmentStrength = uAlignment * (0.30 + wave2 * 0.70);
+  float tensionStrength = uTension * (0.32 + wave3 * 0.68);
+  float uncertaintyStrength = uUncertainty * (0.28 + wave2 * 0.72);
+  float resistanceStrength = uResistance * (0.26 + (1.0 - wave1) * 0.74);
+
+  vec3 color = base;
+  color += confidence * confidenceMask * confidenceStrength * 0.95;
+  color += alignment * alignmentMask * alignmentStrength * 1.00;
+  color += tension * tensionMask * tensionStrength * 1.08;
+  color += uncertainty * uncertaintyMask * uncertaintyStrength * 0.92;
+  color += resistance * resistanceMask * resistanceStrength * 0.80;
+
   vec3 dominantColor = confidence;
-  if (uAlignment > uConfidence && uAlignment > uTension && uAlignment > uUncertainty && uAlignment > uResistance) {
-    dominantColor = alignment;
-  }
-  if (uTension > uConfidence && uTension > uAlignment && uTension > uUncertainty && uTension > uResistance) {
-    dominantColor = tension;
-  }
-  if (uUncertainty > uConfidence && uUncertainty > uAlignment && uUncertainty > uTension && uUncertainty > uResistance) {
-    dominantColor = uncertainty;
-  }
-  if (uResistance > uConfidence && uResistance > uAlignment && uResistance > uTension && uResistance > uUncertainty) {
-    dominantColor = resistance;
-  }
+  if (uAlignment > uConfidence && uAlignment > uTension && uAlignment > uUncertainty && uAlignment > uResistance) dominantColor = alignment;
+  if (uTension > uConfidence && uTension > uAlignment && uTension > uUncertainty && uTension > uResistance) dominantColor = tension;
+  if (uUncertainty > uConfidence && uUncertainty > uAlignment && uUncertainty > uTension && uUncertainty > uResistance) dominantColor = uncertainty;
+  if (uResistance > uConfidence && uResistance > uAlignment && uResistance > uTension && uResistance > uUncertainty) dominantColor = resistance;
+  color = mix(color, dominantColor, clamp((dominant - 0.08) * 1.8, 0.0, 0.78));
 
-  float confidenceWeight = (0.18 + uConfidence * 1.65) * mix(confidenceRegion, colorWaveA, 0.34);
-  float alignmentWeight = (0.18 + uAlignment * 1.75) * mix(alignmentRegion, colorWaveB, 0.32);
-  float tensionWeight = (0.06 + uTension * 1.95) * mix(tensionRegion, colorWaveC, 0.38);
-  float uncertaintyWeight = (0.08 + uUncertainty * 1.70) * mix(uncertaintyRegion, colorWaveB, 0.34);
-  float resistanceWeight = (0.04 + uResistance * 1.70) * mix(resistanceRegion, 1.0 - colorWaveA, 0.24);
-  float totalWeight = confidenceWeight + alignmentWeight + tensionWeight + uncertaintyWeight + resistanceWeight + 0.001;
-
-  vec3 regionColor =
-    confidence * confidenceWeight +
-    alignment * alignmentWeight +
-    tension * tensionWeight +
-    uncertainty * uncertaintyWeight +
-    resistance * resistanceWeight;
-  regionColor /= totalWeight;
-
-  vec3 baseFlow = mix(neutral, milk, 0.08 + livingField * 0.10);
-  vec3 color = mix(baseFlow, regionColor, clamp(totalWeight * 1.12, 0.62, 1.0));
-  color += confidence * uConfidence * colorWaveA * 0.20;
-  color += alignment * uAlignment * colorWaveB * 0.24;
-  color += tension * uTension * colorWaveC * 0.26;
-  color += uncertainty * uUncertainty * (0.5 + 0.5 * broadPool) * 0.18;
-  color += resistance * uResistance * (0.5 + 0.5 * (1.0 - driftingPool)) * 0.14;
-  color = mix(color, dominantColor, clamp((dominant - 0.12) * 1.45, 0.12, 0.72));
-
-  vec3 seep =
-    confidence * confidenceRegion * uConfidence * (0.14 + colorWaveA * 0.14) +
-    alignment * driftingPool * (0.08 + uAlignment * 0.24) +
-    tension * vein * uTension * (0.12 + colorWaveC * 0.22) +
-    uncertainty * broadPool * uUncertainty * (0.10 + colorWaveB * 0.16);
-  float alpha = 0.52 + fresnel * 0.14 + uGlow * 0.05;
-  float innerMilk = smoothstep(0.10, 0.86, fieldA) * 0.04;
-  vec3 finalColor = color * 1.12 + seep + fresnel * vec3(0.06, 0.10, 0.14) + innerMilk;
-  gl_FragColor = vec4(finalColor, alpha);
+  float alpha = 0.72 - fresnel * 0.10;
+  vec3 rimTint = dominantColor * fresnel * 0.22;
+  gl_FragColor = vec4(color + rimTint, alpha);
 }
 `;
 
