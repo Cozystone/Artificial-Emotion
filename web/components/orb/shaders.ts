@@ -35,7 +35,7 @@ void main() {
   vec3 p = position;
   float breath = sin(uTime * (0.55 + uAlignment * 0.35)) * (0.025 + uAlignment * 0.04);
   float slow = noise(normal * 2.4 + uTime * 0.08);
-  float active = noise(normal * (5.0 + uUncertainty * 4.0) + vec3(uTime * 0.35, -uTime * 0.18, uTime * 0.22));
+  float activeField = noise(normal * (5.0 + uUncertainty * 4.0) + vec3(uTime * 0.35, -uTime * 0.18, uTime * 0.22));
   float ring = sin((normal.y * 5.0 + normal.x * 2.2) - uTime * (2.2 + uConfidence * 1.8));
   float shock = sin((1.0 - normal.y) * 13.0 - uTime * 5.6) * exp(-abs(normal.y - 0.22) * 2.4) * uImpact;
   float curl = -uCurl * pow(max(0.0, 1.0 - normal.z), 1.6) * 0.11;
@@ -43,7 +43,7 @@ void main() {
   float displacement =
     breath +
     (slow - 0.5) * 0.09 +
-    (active - 0.5) * (0.08 + uUncertainty * 0.1) +
+    (activeField - 0.5) * (0.08 + uUncertainty * 0.1) +
     ring * uRipple * 0.055 +
     shock * 0.105 +
     tremor +
