@@ -5,6 +5,7 @@ import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import { OrbAura } from "@/components/orb/OrbAura";
 import { OrbCore } from "@/components/orb/OrbCore";
+import { OrbParticleShell } from "@/components/orb/OrbParticleShell";
 import { OrbShell } from "@/components/orb/OrbShell";
 
 export function OrbScene() {
@@ -24,6 +25,7 @@ export function OrbScene() {
           <OrbAura />
           <OrbCore />
           <OrbShell />
+          <OrbParticleShell />
         </group>
         <Environment preset="night" />
         <EffectComposer multisampling={0}>

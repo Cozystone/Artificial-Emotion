@@ -33,7 +33,7 @@ void main() {
   vUv = uv;
   vNormal = normalize(normalMatrix * normal);
   vec3 p = position;
-  float breath = sin(uTime * (0.62 + uAlignment * 0.35)) * (0.04 + uAlignment * 0.04);
+  float breath = sin(uTime * (0.62 + uAlignment * 0.35)) * (0.022 + uAlignment * 0.02);
   float slow = noise(normal * 2.1 + vec3(uTime * 0.12, -uTime * 0.08, uTime * 0.05));
   float activeField = noise(normal * (5.0 + uUncertainty * 4.0) + vec3(uTime * 0.35, -uTime * 0.18, uTime * 0.22));
   float livingCurrent = sin(normal.x * 4.6 + normal.y * 2.8 + uTime * 0.95) * 0.5 + 0.5;
@@ -43,11 +43,11 @@ void main() {
   float tremor = sin(uTime * 32.0 + normal.x * 18.0 + normal.y * 7.0) * uTremor * 0.026;
   float displacement =
     breath +
-    (slow - 0.5) * 0.13 +
-    (livingCurrent - 0.5) * 0.035 +
-    (activeField - 0.5) * (0.08 + uUncertainty * 0.1) +
-    ring * uRipple * 0.055 +
-    shock * 0.105 +
+    (slow - 0.5) * 0.05 +
+    (livingCurrent - 0.5) * 0.018 +
+    (activeField - 0.5) * (0.032 + uUncertainty * 0.035) +
+    ring * uRipple * 0.026 +
+    shock * 0.055 +
     tremor +
     curl;
   p += normal * displacement;
@@ -105,32 +105,132 @@ void main() {
   float uncertaintyRegion = smoothstep(0.26, 0.78, dot(normal, normalize(vec3(0.12, 0.82, -0.28))) + fieldB * 0.38);
   float resistanceRegion = smoothstep(0.38, 0.86, dot(normal, normalize(vec3(0.42, -0.72, -0.12))) + (1.0 - fieldA) * 0.32);
 
-  vec3 neutral = vec3(0.90, 0.94, 0.98);
-  vec3 tension = vec3(0.64, 0.36, 1.0);
-  vec3 uncertainty = vec3(0.45, 0.54, 0.68);
-  vec3 confidence = vec3(0.83, 0.98, 1.0);
-  vec3 alignment = vec3(0.42, 0.91, 1.0);
-  vec3 resistance = vec3(0.29, 0.34, 0.40);
+  vec3 neutral = vec3(0.78, 0.86, 0.94);
+  vec3 milk = vec3(0.92, 0.96, 1.0);
+  vec3 tension = vec3(0.70, 0.22, 1.0);
+  vec3 uncertainty = vec3(0.35, 0.46, 0.66);
+  vec3 confidence = vec3(0.72, 0.98, 1.0);
+  vec3 alignment = vec3(0.18, 0.84, 1.0);
+  vec3 resistance = vec3(0.20, 0.25, 0.32);
 
-  vec3 baseFlow = mix(neutral, vec3(0.72, 0.86, 0.96), 0.20 + livingField * 0.20);
-  vec3 color = baseFlow;
-  color = mix(color, uncertainty, uUncertainty * (0.16 + broadPool * 0.36 + uncertaintyRegion * 0.62));
-  color = mix(color, alignment, uAlignment * (0.16 + driftingPool * 0.32 + alignmentRegion * 0.62));
-  color = mix(color, confidence, uConfidence * (0.18 + confidenceRegion * 0.60 + fresnel * 0.22));
-  color = mix(color, tension, uTension * (0.12 + vein * 0.34 + tensionRegion * 0.70));
-  color = mix(color, resistance, uResistance * (0.22 + resistanceRegion * 0.66 + fresnel * 0.22));
+  float confidenceWeight = (0.20 + uConfidence * 0.95) * confidenceRegion;
+  float alignmentWeight = (0.16 + uAlignment * 1.05) * alignmentRegion;
+  float tensionWeight = (0.04 + uTension * 1.20) * tensionRegion;
+  float uncertaintyWeight = (0.08 + uUncertainty * 1.05) * uncertaintyRegion;
+  float resistanceWeight = (0.02 + uResistance * 1.15) * resistanceRegion;
+  float totalWeight = confidenceWeight + alignmentWeight + tensionWeight + uncertaintyWeight + resistanceWeight + 0.001;
 
-  vec3 regionGlow =
-    confidence * confidenceRegion * uConfidence * 0.14 +
-    alignment * alignmentRegion * uAlignment * 0.16 +
-    tension * tensionRegion * uTension * 0.17 +
-    uncertainty * uncertaintyRegion * uUncertainty * 0.13 +
-    resistance * resistanceRegion * uResistance * 0.12;
-  vec3 seep = alignment * driftingPool * uAlignment * 0.18 + tension * vein * uTension * 0.16 + uncertainty * broadPool * uUncertainty * 0.14;
-  float alpha = 0.32 + fresnel * 0.50 + uGlow * 0.17 + livingField * 0.06 + max(max(uTension, uAlignment), uUncertainty) * 0.06;
-  float innerMilk = smoothstep(0.12, 0.88, fieldA) * 0.18;
-  vec3 finalColor = color + seep + regionGlow + fresnel * vec3(0.22, 0.34, 0.44) + innerMilk;
+  vec3 regionColor =
+    confidence * confidenceWeight +
+    alignment * alignmentWeight +
+    tension * tensionWeight +
+    uncertainty * uncertaintyWeight +
+    resistance * resistanceWeight;
+  regionColor /= totalWeight;
+
+  vec3 baseFlow = mix(neutral, milk, 0.30 + livingField * 0.22);
+  vec3 color = mix(baseFlow, regionColor, clamp(totalWeight * 0.62, 0.18, 0.86));
+  color = mix(color, tension, uTension * vein * 0.42);
+  color = mix(color, uncertainty, uUncertainty * broadPool * 0.28);
+
+  vec3 seep =
+    confidence * confidenceRegion * uConfidence * 0.18 +
+    alignment * driftingPool * (0.10 + uAlignment * 0.18) +
+    tension * vein * uTension * 0.22 +
+    uncertainty * broadPool * uUncertainty * 0.18;
+  float alpha = 0.38 + fresnel * 0.24 + uGlow * 0.08;
+  float innerMilk = smoothstep(0.10, 0.86, fieldA) * 0.12;
+  vec3 finalColor = color * 1.18 + seep + fresnel * vec3(0.16, 0.26, 0.34) + innerMilk;
   gl_FragColor = vec4(finalColor, alpha);
+}
+`;
+
+export const particleVertexShader = `
+attribute float aSeed;
+varying float vAlpha;
+varying vec3 vColor;
+varying vec2 vUvPoint;
+uniform float uTime;
+uniform float uTension;
+uniform float uUncertainty;
+uniform float uConfidence;
+uniform float uAlignment;
+uniform float uResistance;
+uniform float uRipple;
+uniform float uTremor;
+uniform float uGlow;
+uniform float uImpact;
+
+float hash(vec3 p) {
+  p = fract(p * 0.3183099 + vec3(0.19, 0.37, 0.53));
+  p *= 23.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float noise(vec3 x) {
+  vec3 i = floor(x);
+  vec3 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hash(i + vec3(0.0, 0.0, 0.0)), hash(i + vec3(1.0, 0.0, 0.0)), f.x),
+                 mix(hash(i + vec3(0.0, 1.0, 0.0)), hash(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+             mix(mix(hash(i + vec3(0.0, 0.0, 1.0)), hash(i + vec3(1.0, 0.0, 1.0)), f.x),
+                 mix(hash(i + vec3(0.0, 1.0, 1.0)), hash(i + vec3(1.0, 1.0, 1.0)), f.x), f.y), f.z);
+}
+
+void main() {
+  vec3 n = normalize(position);
+  float breath = sin(uTime * 0.7 + n.y * 1.8) * 0.018;
+  float membrane = noise(n * 2.8 + vec3(uTime * 0.16, -uTime * 0.11, uTime * 0.06));
+  float ribbonA = sin(n.x * 9.0 + n.y * 5.0 + membrane * 3.5 + uTime * 0.55);
+  float ribbonB = sin(n.y * 11.0 - n.z * 7.0 + uTime * (0.38 + uTension * 0.8));
+  float panel = smoothstep(0.12, 0.96, abs(ribbonA)) * smoothstep(-0.65, 0.92, ribbonB);
+  float shock = sin((1.0 - n.y) * 13.0 - uTime * 5.6) * exp(-abs(n.y - 0.22) * 2.4) * uImpact;
+  float displacement = breath + (membrane - 0.5) * 0.055 + panel * (0.015 + uRipple * 0.025) + shock * 0.05;
+  vec3 p = n * (1.485 + displacement);
+
+  vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mvPosition;
+
+  float rim = pow(1.0 - max(dot(n, normalize(cameraPosition - (modelMatrix * vec4(p, 1.0)).xyz)), 0.0), 1.8);
+  float confidenceRegion = smoothstep(0.36, 0.88, dot(n, normalize(vec3(-0.24, 0.56, 0.79))) + membrane * 0.34);
+  float alignmentRegion = smoothstep(0.30, 0.84, dot(n, normalize(vec3(0.78, -0.15, 0.48))) + noise(n * 2.0 + uTime * 0.11) * 0.36);
+  float tensionRegion = smoothstep(0.34, 0.84, dot(n, normalize(vec3(-0.72, -0.36, 0.42))) + noise(n * 5.0 - uTime * 0.18) * 0.42);
+  float uncertaintyRegion = smoothstep(0.28, 0.80, dot(n, normalize(vec3(0.12, 0.82, -0.28))) + noise(n * 3.4 + uTime * 0.14) * 0.38);
+  float resistanceRegion = smoothstep(0.38, 0.86, dot(n, normalize(vec3(0.42, -0.72, -0.12))) + (1.0 - membrane) * 0.32);
+
+  vec3 neutral = vec3(0.92, 0.97, 1.0);
+  vec3 confidence = vec3(0.72, 0.98, 1.0);
+  vec3 alignment = vec3(0.24, 0.86, 1.0);
+  vec3 tension = vec3(0.74, 0.28, 1.0);
+  vec3 uncertainty = vec3(0.40, 0.52, 0.72);
+  vec3 resistance = vec3(0.25, 0.30, 0.38);
+  vec3 regionColor = neutral;
+  regionColor = mix(regionColor, confidence, confidenceRegion * (0.18 + uConfidence * 0.82));
+  regionColor = mix(regionColor, alignment, alignmentRegion * (0.12 + uAlignment * 0.82));
+  regionColor = mix(regionColor, tension, tensionRegion * uTension * 0.95);
+  regionColor = mix(regionColor, uncertainty, uncertaintyRegion * uUncertainty * 0.80);
+  regionColor = mix(regionColor, resistance, resistanceRegion * uResistance * 0.85);
+
+  float dotLife = 0.58 + 0.42 * sin(aSeed * 31.0 + uTime * (0.7 + uTremor * 1.8));
+  float panelLight = 0.44 + panel * 0.42 + rim * 0.35 + uGlow * 0.22;
+  vAlpha = clamp(panelLight * dotLife, 0.18, 1.0);
+  vColor = regionColor * (0.82 + panel * 0.40 + rim * 0.45);
+  gl_PointSize = (7.0 + panel * 4.0 + rim * 3.0) / max(1.2, -mvPosition.z);
+}
+`;
+
+export const particleFragmentShader = `
+varying float vAlpha;
+varying vec3 vColor;
+
+void main() {
+  vec2 centered = gl_PointCoord - vec2(0.5);
+  float radius = dot(centered, centered);
+  if (radius > 0.25) {
+    discard;
+  }
+  float soft = smoothstep(0.25, 0.02, radius);
+  gl_FragColor = vec4(vColor, vAlpha * soft);
 }
 `;
 

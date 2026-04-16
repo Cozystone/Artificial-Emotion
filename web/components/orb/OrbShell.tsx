@@ -16,7 +16,8 @@ export function OrbShell() {
         fragmentShader={shellFragmentShader}
         transparent
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={THREE.NormalBlending}
+        side={THREE.DoubleSide}
       />
     </mesh>
   );
