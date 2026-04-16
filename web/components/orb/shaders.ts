@@ -89,6 +89,7 @@ void main() {
   vec3 normal = normalize(vNormal);
   vec3 viewDir = normalize(cameraPosition - vWorld);
   float fresnel = pow(1.0 - max(dot(normal, viewDir), 0.0), 2.15);
+  float dominant = max(max(max(uConfidence, uAlignment), max(uTension, uUncertainty)), uResistance);
   vec3 flowNormal = normalize(normal + vec3(sin(uTime * 0.08) * 0.18, cos(uTime * 0.07) * 0.14, 0.0));
   float fieldA = noise(flowNormal * 1.65 + vec3(uTime * 0.11, -uTime * 0.08, uTime * 0.05));
   float fieldB = noise(flowNormal * 4.1 + vec3(-uTime * 0.22, uTime * 0.16, uTime * 0.12));
@@ -112,6 +113,19 @@ void main() {
   vec3 confidence = vec3(0.66, 0.96, 1.0);
   vec3 alignment = vec3(0.10, 0.80, 0.98);
   vec3 resistance = vec3(0.18, 0.22, 0.30);
+  vec3 dominantColor = confidence;
+  if (uAlignment > uConfidence && uAlignment > uTension && uAlignment > uUncertainty && uAlignment > uResistance) {
+    dominantColor = alignment;
+  }
+  if (uTension > uConfidence && uTension > uAlignment && uTension > uUncertainty && uTension > uResistance) {
+    dominantColor = tension;
+  }
+  if (uUncertainty > uConfidence && uUncertainty > uAlignment && uUncertainty > uTension && uUncertainty > uResistance) {
+    dominantColor = uncertainty;
+  }
+  if (uResistance > uConfidence && uResistance > uAlignment && uResistance > uTension && uResistance > uUncertainty) {
+    dominantColor = resistance;
+  }
 
   float confidenceWeight = (0.26 + uConfidence * 1.25) * confidenceRegion;
   float alignmentWeight = (0.22 + uAlignment * 1.30) * alignmentRegion;
@@ -132,6 +146,7 @@ void main() {
   vec3 color = mix(baseFlow, regionColor, clamp(totalWeight * 0.92, 0.42, 0.98));
   color = mix(color, tension, uTension * vein * 0.62);
   color = mix(color, uncertainty, uUncertainty * broadPool * 0.42);
+  color = mix(color, dominantColor, clamp((dominant - 0.18) * 1.25, 0.0, 0.46));
 
   vec3 seep =
     confidence * confidenceRegion * uConfidence * 0.18 +
@@ -179,13 +194,19 @@ float noise(vec3 x) {
 
 void main() {
   vec3 n = normalize(position);
+  float longitude = atan(n.z, n.x);
+  float latitude = asin(clamp(n.y, -1.0, 1.0));
   float breath = sin(uTime * 0.7 + n.y * 1.8) * 0.018;
   float membrane = noise(n * 2.8 + vec3(uTime * 0.16, -uTime * 0.11, uTime * 0.06));
   float ribbonA = sin(n.x * 9.0 + n.y * 5.0 + membrane * 3.5 + uTime * 0.55);
   float ribbonB = sin(n.y * 11.0 - n.z * 7.0 + uTime * (0.38 + uTension * 0.8));
   float panel = smoothstep(0.12, 0.96, abs(ribbonA)) * smoothstep(-0.65, 0.92, ribbonB);
+  float guideEquator = smoothstep(0.11, 0.0, abs(latitude - 0.18));
+  float guideMeridian = smoothstep(0.10, 0.0, abs(longitude + 1.12));
+  float guideCluster = smoothstep(0.22, 0.0, distance(n, normalize(vec3(0.62, 0.54, -0.56))));
+  float guideSignal = max(max(guideEquator * 0.9, guideMeridian), guideCluster * 1.3);
   float shock = sin((1.0 - n.y) * 13.0 - uTime * 5.6) * exp(-abs(n.y - 0.22) * 2.4) * uImpact;
-  float displacement = breath + (membrane - 0.5) * 0.055 + panel * (0.015 + uRipple * 0.025) + shock * 0.05;
+  float displacement = breath + (membrane - 0.5) * 0.055 + panel * (0.015 + uRipple * 0.025) + guideSignal * 0.012 + shock * 0.05;
   vec3 p = n * (1.485 + displacement);
 
   vec4 mvPosition = modelViewMatrix * vec4(p, 1.0);
@@ -204,18 +225,33 @@ void main() {
   vec3 tension = vec3(0.76, 0.26, 0.98);
   vec3 uncertainty = vec3(0.42, 0.56, 0.78);
   vec3 resistance = vec3(0.28, 0.34, 0.44);
+  vec3 dominantColor = confidence;
+  float dominant = max(max(max(uConfidence, uAlignment), max(uTension, uUncertainty)), uResistance);
+  if (uAlignment > uConfidence && uAlignment > uTension && uAlignment > uUncertainty && uAlignment > uResistance) {
+    dominantColor = alignment;
+  }
+  if (uTension > uConfidence && uTension > uAlignment && uTension > uUncertainty && uTension > uResistance) {
+    dominantColor = tension;
+  }
+  if (uUncertainty > uConfidence && uUncertainty > uAlignment && uUncertainty > uTension && uUncertainty > uResistance) {
+    dominantColor = uncertainty;
+  }
+  if (uResistance > uConfidence && uResistance > uAlignment && uResistance > uTension && uResistance > uUncertainty) {
+    dominantColor = resistance;
+  }
   vec3 regionColor = neutral;
   regionColor = mix(regionColor, confidence, confidenceRegion * (0.28 + uConfidence * 1.05));
   regionColor = mix(regionColor, alignment, alignmentRegion * (0.22 + uAlignment * 1.05));
   regionColor = mix(regionColor, tension, tensionRegion * (0.08 + uTension * 1.20));
   regionColor = mix(regionColor, uncertainty, uncertaintyRegion * (0.12 + uUncertainty * 1.05));
   regionColor = mix(regionColor, resistance, resistanceRegion * (0.04 + uResistance * 1.05));
+  regionColor = mix(regionColor, dominantColor, clamp((dominant - 0.18) * 1.3, 0.0, 0.52));
 
   float dotLife = 0.58 + 0.42 * sin(aSeed * 31.0 + uTime * (0.7 + uTremor * 1.8));
-  float panelLight = 0.30 + panel * 0.34 + rim * 0.18 + uGlow * 0.14;
-  vAlpha = clamp(panelLight * dotLife, 0.12, 0.74);
-  vColor = regionColor * (0.88 + panel * 0.36 + rim * 0.24);
-  gl_PointSize = (7.0 + panel * 3.8 + rim * 2.4) / max(1.2, -mvPosition.z);
+  float panelLight = 0.24 + panel * 0.26 + rim * 0.16 + uGlow * 0.12 + guideSignal * 0.62;
+  vAlpha = clamp(panelLight * dotLife, 0.14, 0.92);
+  vColor = mix(regionColor * (0.86 + panel * 0.30 + rim * 0.22), vec3(0.95, 0.98, 1.0), guideSignal * 0.55);
+  gl_PointSize = (6.6 + panel * 3.2 + rim * 2.2 + guideSignal * 5.4) / max(1.2, -mvPosition.z);
 }
 `;
 
