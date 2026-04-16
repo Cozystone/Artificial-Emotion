@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useEffect } from "react";
 import { ChatPanel } from "@/components/ChatPanel";
 import { MetricChips } from "@/components/MetricChips";
+import { StateDebugPanel } from "@/components/StateDebugPanel";
 import { useInnerWeatherStore } from "@/store/useInnerWeatherStore";
 
 const OrbScene = dynamic(() => import("@/components/orb/OrbScene").then((mod) => mod.OrbScene), {
@@ -25,6 +26,7 @@ export default function Home() {
       <section className="relative grid min-h-screen grid-cols-1 lg:grid-cols-[minmax(0,68fr)_minmax(390px,32fr)]">
         <div className="relative min-h-[58vh] lg:min-h-screen">
           <MetricChips />
+          <StateDebugPanel />
           <OrbScene />
           <div className="pointer-events-none absolute bottom-7 left-8 hidden max-w-sm text-[11px] uppercase tracking-[0.28em] text-slate-400/60 lg:block">
             latent response field
@@ -35,4 +37,3 @@ export default function Home() {
     </main>
   );
 }
-
