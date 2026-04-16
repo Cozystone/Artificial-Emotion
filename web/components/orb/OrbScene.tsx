@@ -2,7 +2,7 @@
 
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import { Canvas } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 import { OrbAura } from "@/components/orb/OrbAura";
 import { OrbCore } from "@/components/orb/OrbCore";
 import { OrbParticleShell } from "@/components/orb/OrbParticleShell";
@@ -27,6 +27,13 @@ export function OrbScene() {
           <OrbShell />
           <OrbParticleShell />
         </group>
+        <OrbitControls
+          enableDamping
+          dampingFactor={0.06}
+          enablePan={false}
+          enableZoom={false}
+          rotateSpeed={0.55}
+        />
         <Environment preset="night" />
         <EffectComposer multisampling={0}>
           <Bloom intensity={0.68} luminanceThreshold={0.12} luminanceSmoothing={0.78} mipmapBlur />

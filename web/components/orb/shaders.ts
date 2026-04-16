@@ -113,11 +113,11 @@ void main() {
   vec3 alignment = vec3(0.18, 0.84, 1.0);
   vec3 resistance = vec3(0.20, 0.25, 0.32);
 
-  float confidenceWeight = (0.20 + uConfidence * 0.95) * confidenceRegion;
-  float alignmentWeight = (0.16 + uAlignment * 1.05) * alignmentRegion;
-  float tensionWeight = (0.04 + uTension * 1.20) * tensionRegion;
-  float uncertaintyWeight = (0.08 + uUncertainty * 1.05) * uncertaintyRegion;
-  float resistanceWeight = (0.02 + uResistance * 1.15) * resistanceRegion;
+  float confidenceWeight = (0.26 + uConfidence * 1.25) * confidenceRegion;
+  float alignmentWeight = (0.22 + uAlignment * 1.30) * alignmentRegion;
+  float tensionWeight = (0.10 + uTension * 1.45) * tensionRegion;
+  float uncertaintyWeight = (0.14 + uUncertainty * 1.30) * uncertaintyRegion;
+  float resistanceWeight = (0.06 + uResistance * 1.35) * resistanceRegion;
   float totalWeight = confidenceWeight + alignmentWeight + tensionWeight + uncertaintyWeight + resistanceWeight + 0.001;
 
   vec3 regionColor =
@@ -129,9 +129,9 @@ void main() {
   regionColor /= totalWeight;
 
   vec3 baseFlow = mix(neutral, milk, 0.30 + livingField * 0.22);
-  vec3 color = mix(baseFlow, regionColor, clamp(totalWeight * 0.62, 0.18, 0.86));
-  color = mix(color, tension, uTension * vein * 0.42);
-  color = mix(color, uncertainty, uUncertainty * broadPool * 0.28);
+  vec3 color = mix(baseFlow, regionColor, clamp(totalWeight * 0.86, 0.32, 0.94));
+  color = mix(color, tension, uTension * vein * 0.62);
+  color = mix(color, uncertainty, uUncertainty * broadPool * 0.42);
 
   vec3 seep =
     confidence * confidenceRegion * uConfidence * 0.18 +
@@ -140,7 +140,7 @@ void main() {
     uncertainty * broadPool * uUncertainty * 0.18;
   float alpha = 0.38 + fresnel * 0.24 + uGlow * 0.08;
   float innerMilk = smoothstep(0.10, 0.86, fieldA) * 0.12;
-  vec3 finalColor = color * 1.18 + seep + fresnel * vec3(0.16, 0.26, 0.34) + innerMilk;
+  vec3 finalColor = color * 1.32 + seep + fresnel * vec3(0.16, 0.26, 0.34) + innerMilk;
   gl_FragColor = vec4(finalColor, alpha);
 }
 `;
@@ -205,17 +205,17 @@ void main() {
   vec3 uncertainty = vec3(0.40, 0.52, 0.72);
   vec3 resistance = vec3(0.25, 0.30, 0.38);
   vec3 regionColor = neutral;
-  regionColor = mix(regionColor, confidence, confidenceRegion * (0.18 + uConfidence * 0.82));
-  regionColor = mix(regionColor, alignment, alignmentRegion * (0.12 + uAlignment * 0.82));
-  regionColor = mix(regionColor, tension, tensionRegion * uTension * 0.95);
-  regionColor = mix(regionColor, uncertainty, uncertaintyRegion * uUncertainty * 0.80);
-  regionColor = mix(regionColor, resistance, resistanceRegion * uResistance * 0.85);
+  regionColor = mix(regionColor, confidence, confidenceRegion * (0.28 + uConfidence * 1.05));
+  regionColor = mix(regionColor, alignment, alignmentRegion * (0.22 + uAlignment * 1.05));
+  regionColor = mix(regionColor, tension, tensionRegion * (0.08 + uTension * 1.20));
+  regionColor = mix(regionColor, uncertainty, uncertaintyRegion * (0.12 + uUncertainty * 1.05));
+  regionColor = mix(regionColor, resistance, resistanceRegion * (0.04 + uResistance * 1.05));
 
   float dotLife = 0.58 + 0.42 * sin(aSeed * 31.0 + uTime * (0.7 + uTremor * 1.8));
   float panelLight = 0.44 + panel * 0.42 + rim * 0.35 + uGlow * 0.22;
   vAlpha = clamp(panelLight * dotLife, 0.18, 1.0);
-  vColor = regionColor * (0.82 + panel * 0.40 + rim * 0.45);
-  gl_PointSize = (7.0 + panel * 4.0 + rim * 3.0) / max(1.2, -mvPosition.z);
+  vColor = regionColor * (1.05 + panel * 0.56 + rim * 0.55);
+  gl_PointSize = (9.0 + panel * 4.8 + rim * 3.4) / max(1.2, -mvPosition.z);
 }
 `;
 

@@ -7,6 +7,8 @@ from .state_engine import StateEngine
 
 SYSTEM_PROMPT = (
     "You are Inner Weather's local assistant. Be clear, useful, and concise. "
+    "Always answer in the same language as the user's latest message. "
+    "If the user writes Korean, answer naturally in Korean. "
     "Do not claim to have emotions. If the user asks about the orb, describe it "
     "as response-pattern visualization."
 )
@@ -40,4 +42,3 @@ class SessionManager:
         session.messages.append(ChatMessage(role="system", content=SYSTEM_PROMPT))
         self.sessions[session.session_id] = session
         return session
-
